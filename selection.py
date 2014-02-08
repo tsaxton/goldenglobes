@@ -3,6 +3,9 @@ import random
 import re
 
 def removeRT(tweet):
+    ''' Removes the RT @handle: rom the tweet.
+        Input: string (Tweet)
+        Output: string (Tweet without RT)'''
     t = re.split('RT\s\@\S+\:\s', tweet,1)
     if len(t)>1:
     	return t[1]
@@ -16,20 +19,37 @@ for t in tweets:
 	removeRT(t['text'])
 
 h = re.compile('.+.+wins.+.+for.+.+')
-printed=[]
 winners={}
+awards={}
 for s in tweets:
 	t = removeRT(s['text'])
 	if h.match(t):
-		#if t not in printed:
-		    #printed.append(t)
-		    #print re.sub(r'[^\x00-\x7F]+',' ', s['text'])
-		    words = re.split('wins',t)
-		    if words[0] in winners.keys():
-		        winners[words[0]]+=1
-		    else:
-		    	winners[words[0]]=1
+		words = re.split('wins',t)
+		if words[0] in winners.keys():
+		    winners[words[0]]+=1
+		else:
+		    winners[words[0]]=1
+		award = re.split('for\s',words[1])
+		for phrase in award:
+			if re.match('^Best', phrase):
+				if words[0] in awards.keys():
+					if phrase in awards[words[0]].keys():
+						awards[words[0]][phrase]+=1
+					else:
+						awards[words[0]][phrase]=1
+				else:
+					awards[words[0]] = {}
+					awards[words[0]][phrase]=1
 
 for key in winners:
+	category = ''
 	if winners[key] > 10:
-	    print key+': '+str(winners[key])
+	    #print key+': '+str(winners[key])
+	    if key in awards:
+	    	m = max(awards[key].values())
+	    	for a in awards[key]:
+	    		if awards[key][a] == m:
+	    		    #print a+': '+str(awards[key][a])
+	    		    category = a
+	    		    break # prevents from case of a tie but similar wording
+	    print str(key)+': '+str(category)
