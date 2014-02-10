@@ -52,4 +52,9 @@ for key in winners:
 	    		    #print a+': '+str(awards[key][a])
 	    		    category = a
 	    		    break # prevents from case of a tie but similar wording
+	    category = category.split('. ', 1)[0] #removes trailing links. award names do not take two sentences.
+	    if '."' in category:#if clause handles award names ending with quotes ex. "django unchained." 
+		category = category.split('."',1)[0]
+		category += str('."')
+	    category = category.split('#',1)[0] #removes any hashtags remaining
 	    print str(key)+': '+str(category)
