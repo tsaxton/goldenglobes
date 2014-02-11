@@ -1,6 +1,7 @@
 import json
 import random
 import re
+from titlecase import titlecase
 
 def removeRT(tweet):
     ''' Removes the RT @handle: rom the tweet.
@@ -33,7 +34,7 @@ def winners(tweets):
 		        winners[words[0]]=1
 		    award = re.split('for\s',words[1])
 		    for phrase in award:
-		    	p = phrase.lower()
+		    	p = phrase.lower().lstrip()
 		    	if re.match('^best', p):
 				    if words[0] in awards.keys():
 					    if p in awards[words[0]].keys():
@@ -61,7 +62,7 @@ def winners(tweets):
 		    category += str('."')
 	        category = category.split('#',1)[0] #removes any hashtags remaining
 	        if category != '':
-	        	output.append({'winner': key, 'category': category})
+	        	output.append({'winner': key, 'category': titlecase(category)})
     return output
 
 '''g = re.compile('.+.+\sgoes\sto.+.+')
@@ -69,6 +70,7 @@ for s in tweets:
 	t = removeRT(s['text'])
 	if g.match(t):
 		words = re.split('\sgoes\sto\s',t)
+		
 		print words'''
 
 results = winners(tweets)
