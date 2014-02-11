@@ -18,43 +18,51 @@ with open('goldenglobes.json', 'r') as f:
 for t in tweets:
 	removeRT(t['text'])
 
-h = re.compile('.+.+wins.+.+for.+.+')
-winners={}
-awards={}
-for s in tweets:
-	t = removeRT(s['text'])
-	if h.match(t):
-		words = re.split('wins',t)
-		if words[0] in winners.keys():
-		    winners[words[0]]+=1
-		else:
-		    winners[words[0]]=1
-		award = re.split('for\s',words[1])
-		for phrase in award:
-			if re.match('^Best', phrase):
-				if words[0] in awards.keys():
-					if phrase in awards[words[0]].keys():
-						awards[words[0]][phrase]+=1
-					else:
-						awards[words[0]][phrase]=1
-				else:
-					awards[words[0]] = {}
-					awards[words[0]][phrase]=1
+def winners(tweets):
+    h = re.compile('.+.+wins.+.+for.+.+')
+    winners={}
+    awards={}
+    output=[]
+    for s in tweets:
+	    t = removeRT(s['text'])
+	    if h.match(t):
+		    words = re.split('wins',t)
+		    if words[0] in winners.keys():
+		        winners[words[0]]+=1
+		    else:
+		        winners[words[0]]=1
+		    award = re.split('for\s',words[1])
+		    for phrase in award:
+			    if re.match('^Best', phrase):
+				    if words[0] in awards.keys():
+					    if phrase in awards[words[0]].keys():
+						    awards[words[0]][phrase]+=1
+					    else:
+						    awards[words[0]][phrase]=1
+				    else:
+					    awards[words[0]] = {}
+					    awards[words[0]][phrase]=1
 
-for key in winners:
-	category = ''
-	if winners[key] > 10:
-	    #print key+': '+str(winners[key])
-	    if key in awards:
-	    	m = max(awards[key].values())
-	    	for a in awards[key]:
-	    		if awards[key][a] == m:
-	    		    #print a+': '+str(awards[key][a])
-	    		    category = a
-	    		    break # prevents from case of a tie but similar wording
-	    category = category.split('. ', 1)[0] #removes trailing links. award names do not take two sentences.
-	    if '."' in category:#if clause handles award names ending with quotes ex. "django unchained." 
-		category = category.split('."',1)[0]
-		category += str('."')
-	    category = category.split('#',1)[0] #removes any hashtags remaining
-	    print str(key)+': '+str(category)
+    for key in winners:
+	    category = ''
+	    if winners[key] > 10:
+	        #print key+': '+str(winners[key])
+	        if key in awards:
+	    	    m = max(awards[key].values())
+	    	    for a in awards[key]:
+	    		    if awards[key][a] == m:
+	    		        #print a+': '+str(awards[key][a])
+	    		        category = a
+	    		        break # prevents from case of a tie but similar wording
+	        category = category.split('. ', 1)[0] #removes trailing links. award names do not take two sentences.
+	        if '."' in category:#if clause handles award names ending with quotes ex. "django unchained." 
+		    category = category.split('."',1)[0]
+		    category += str('."')
+	        category = category.split('#',1)[0] #removes any hashtags remaining
+	        if category != '':
+	        	output.append({'winner': key, 'category': category})
+    return output
+
+results = winners(tweets)
+for a in results:
+	print a
