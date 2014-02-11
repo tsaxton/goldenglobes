@@ -33,15 +33,16 @@ def winners(tweets):
 		        winners[words[0]]=1
 		    award = re.split('for\s',words[1])
 		    for phrase in award:
-			    if re.match('^Best', phrase):
+		    	p = phrase.lower()
+		    	if re.match('^best', p):
 				    if words[0] in awards.keys():
-					    if phrase in awards[words[0]].keys():
-						    awards[words[0]][phrase]+=1
+					    if p in awards[words[0]].keys():
+						    awards[words[0]][p]+=1
 					    else:
-						    awards[words[0]][phrase]=1
+						    awards[words[0]][p]=1
 				    else:
 					    awards[words[0]] = {}
-					    awards[words[0]][phrase]=1
+					    awards[words[0]][p]=1
 
     for key in winners:
 	    category = ''
@@ -62,6 +63,13 @@ def winners(tweets):
 	        if category != '':
 	        	output.append({'winner': key, 'category': category})
     return output
+
+'''g = re.compile('.+.+\sgoes\sto.+.+')
+for s in tweets:
+	t = removeRT(s['text'])
+	if g.match(t):
+		words = re.split('\sgoes\sto\s',t)
+		print words'''
 
 results = winners(tweets)
 for a in results:
