@@ -105,29 +105,6 @@ def winners(tweets):
                 output.append({'winner': key, 'category': titlecase(category)})
     return output
 
-'''g = re.compile('.+.+\sgoes\sto.+.+')
-for s in tweets:
-    t = removeRT(s['text'])
-    if g.match(t):
-        words = re.split('\sgoes\sto',t)
-        if re.match('^best',words[0].lower().lstrip()):
-            category = words[0].lower().lstrip()
-            who = re.split('\sfor\s',words[1])
-            # who[0] contains winner
-            # who[1] contains role/movie, plus other crap
-            person = who[0].lstrip()
-            person = re.split('\s#',person)[0]
-            if '"' in person:
-                person = re.split('"',person)[1]
-            what = ''
-            if len(who) > 1:
-                what = who[1].lstrip()
-                what = re.split('http',what)[0]
-                what = re.split('#', what)[0]
-                if '"' in what:
-                    what = re.split('"', what)[1]
-                what = re.split('\.', what)[0]'''
-
 results = winners(tweets)
 for a in results:
     print a
