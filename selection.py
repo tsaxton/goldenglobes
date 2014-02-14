@@ -2,6 +2,8 @@ import json
 import random
 import re
 from titlecase import titlecase
+from tfidf import *
+import numpy
 
 def removeRT(tweet):
     ''' Removes the RT @handle: rom the tweet.
@@ -19,8 +21,7 @@ def winners(tweets):
     winners={}
     awards={}
     output=[]
-    for s in tweets:
-        t = removeRT(s['text'])
+    for t in tweets:
         if h.match(t):
             words = re.split('wins',t)
             person = words[0].lstrip().rstrip()
@@ -107,7 +108,6 @@ def getNominees(tweets):
     listing = []
     ret = {}
     for t in tweets:
-        t = removeRT(t['text'])
         if nominee.match(t):
             name = re.split('should\shave\swon',t)[0]
             name = re.split('[?.,!]', name)
@@ -162,18 +162,77 @@ def getNominees(tweets):
                 listing = []
     return ret
 
+def getHosts(tweets):
+	h = re.compile('.+.+\shosts\s.+.+')
+	n = re.compile('.+.+\snext\s.+.+')
+	votes = {}
+	for t in tweets:
+		if h.match(t) and not n.match(t):
+			tokens = tokenizer.tokenize(t)
+			bi_tokens = bigrams(tokens)
+			for b in bi_tokens:
+				#if isupper(b[0][0]) and isupper(b[1][0]):
+				if b[0][0].isupper() and b[1][0].isupper():
+					bJoined = b[0] + ' ' + b[1]
+					if bJoined in votes.keys():
+						votes[bJoined] += 1
+					else:
+						votes[bJoined] = 1
+	avg = numpy.mean(votes.values())
+	s = numpy.std(votes.values())
+	cutoff = avg + 2*s
+	hosts = []
+	for v in votes:
+		if votes[v] >= cutoff and not (('Golden' in v) or ('Globes' in v)):
+			hosts.append(v)
+	return hosts
+
 
 # Imperatives Begin Here
 with open('goldenglobes.json', 'r') as f:
     tweets = map(json.loads, f)
+cleanTweets = []
+for t in tweets:
+	cleanTweets.append(removeRT(t['text']))
 
 
-results = winners(tweets)
+'''
+# 1. Find the names of the hosts
+print getHosts(cleanTweets)
+# 2. For each award, find the name of the winner.
+results = winners(cleanTweets)
 for a in results:
     print a
-nominees = getNominees(tweets)
+# 4. For each award, try to find the nominees
+nominees = getNominees(cleanTweets)
 for n in nominees:
     print titlecase(n)
     for person in nominees[n]:
         print person
-    print "\n"
+    print "\n"'''
+
+# the following attempt at doing tf idf on the tweet corpus using NLTK takes too long
+# going to try using Alchemy API to see if that does any better
+# first want to try and extract the hosts
+'''vocabulary = []
+docs = []
+all_tips = []
+for i in range(len(cleanTweets)):
+	tip = cleanTweets[i]
+	tokens = tokenizer.tokenize(tip.lower())
+	 
+	bi_tokens = bigrams(tokens)
+	tri_tokens = trigrams(tokens)
+
+	for token in tokens:
+		if token in stopwords:
+			tokens.remove(token)
+
+	tokens.extend(bi_tokens)
+	tokens.extend(tri_tokens)
+	vocabulary.append(tokens) # want to append rather than extend to keep the tweets separate
+ 	docs.append({'freq': {}, 'tf': {}, 'idf': {},'tf-idf': {}, 'tokens': tokens})
+
+	for token in tokens:
+		docs[i]['freq'][token] = freq(token, tokens)
+		docs[i]['tf'][token] = tf(token, tokens)'''
