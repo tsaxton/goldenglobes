@@ -4,6 +4,8 @@ import re
 from titlecase import titlecase
 from tfidf import *
 import numpy
+import sys
+from alchemyapi import *
 
 def removeRT(tweet):
     ''' Removes the RT @handle: rom the tweet.
@@ -211,6 +213,26 @@ for n in nominees:
         print person
     print "\n"'''
 
+p = re.compile('.+.+present.+.+')
+query = ''
+alchemy = AlchemyAPI()
+entities = []
+for t in cleanTweets:
+	if p.match(t):
+		#t.encode('utf8', 'ignore')
+		#urllib.quote(t)
+		query += t.encode('utf-8') + ' '
+		if sys.getsizeof(query)>153000:
+			response = alchemy.entities('text',query,{})
+			if response['status'] == 'OK':
+				entities.extend(response['entities'])
+			query = ''
+for e in entities:
+	if e['type'] == 'Person':
+		eWords = e['text'].split(' ')
+		if len(eWords) >= 2 and len(eWords) <= 4 and len(eWords[0]) > 2 and eWords[0][0].isupper():
+			print e['text']
+
 # the following attempt at doing tf idf on the tweet corpus using NLTK takes too long
 # going to try using Alchemy API to see if that does any better
 # first want to try and extract the hosts
@@ -231,7 +253,7 @@ for i in range(len(cleanTweets)):
 	tokens.extend(bi_tokens)
 	tokens.extend(tri_tokens)
 	vocabulary.append(tokens) # want to append rather than extend to keep the tweets separate
- 	docs.append({'freq': {}, 'tf': {}, 'idf': {},'tf-idf': {}, 'tokens': tokens})
+	docs.append({'freq': {}, 'tf': {}, 'idf': {},'tf-idf': {}, 'tokens': tokens})
 
 	for token in tokens:
 		docs[i]['freq'][token] = freq(token, tokens)
