@@ -102,6 +102,9 @@ def winners(tweets):
 
 def getNominees(tweets):
     nominee = re.compile('.+.+should\shave\swon.+.+')
+    # should of won
+	# should've won
+	# robbed
     g = re.compile('.+.+\sgoes\sto.+.+')
     h = re.compile('.+.+wins.+.+for.+.+')
     flag = False
@@ -196,6 +199,7 @@ for t in tweets:
 	cleanTweets.append(removeRT(t['text']))
 
 
+
 '''
 # 1. Find the names of the hosts
 print getHosts(cleanTweets)
@@ -209,7 +213,8 @@ for n in nominees:
     print titlecase(n)
     for person in nominees[n]:
         print person
-    print "\n"'''
+    print "\n"
+    '''
 
 # the following attempt at doing tf idf on the tweet corpus using NLTK takes too long
 # going to try using Alchemy API to see if that does any better
