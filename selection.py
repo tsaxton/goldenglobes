@@ -91,13 +91,13 @@ def winners(tweets):
         if winners[key] > 10:
             #print key+': '+str(winners[key])
             if key in awards:
-            	maxLen = 0
-            	for a in awards[key]:
-            		l = len(awards[key][a])
-            		if l > maxLen:
-            			maxLen = l
-            			category = a
-            			categoryKey = a
+                maxLen = 0
+                for a in awards[key]:
+                    l = len(awards[key][a])
+                    if l > maxLen:
+                        maxLen = l
+                        category = a
+                        categoryKey = a
             category = category.split('. ', 1)[0] #removes trailing links. award names do not take two sentences.
             if '."' in category:#if clause handles award names ending with quotes ex. "django unchained." 
                 category = category.split('."',1)[0]
@@ -110,8 +110,8 @@ def winners(tweets):
 def getNominees(tweets):
     nominee = re.compile('.+.+should\shave\swon.+.+')
     # should of won
-	# should've won
-	# robbed
+    # should've won
+    # robbed
     g = re.compile('.+.+\sgoes\sto.+.+')
     h = re.compile('.+.+wins.+.+for.+.+')
     flag = False
@@ -173,29 +173,29 @@ def getNominees(tweets):
     return ret
 
 def getHosts(tweets):
-	h = re.compile('.+.+\shosts\s.+.+')
-	n = re.compile('.+.+\snext\s.+.+')
-	votes = {}
-	for t in tweets:
-		if h.match(t) and not n.match(t):
-			tokens = tokenizer.tokenize(t)
-			bi_tokens = bigrams(tokens)
-			for b in bi_tokens:
-				#if isupper(b[0][0]) and isupper(b[1][0]):
-				if b[0][0].isupper() and b[1][0].isupper():
-					bJoined = b[0] + ' ' + b[1]
-					if bJoined in votes.keys():
-						votes[bJoined] += 1
-					else:
-						votes[bJoined] = 1
-	avg = numpy.mean(votes.values())
-	s = numpy.std(votes.values())
-	cutoff = avg + 2*s
-	hosts = []
-	for v in votes:
-		if votes[v] >= cutoff and not (('Golden' in v) or ('Globes' in v)):
-			hosts.append(v)
-	return hosts
+    h = re.compile('.+.+\shosts\s.+.+')
+    n = re.compile('.+.+\snext\s.+.+')
+    votes = {}
+    for t in tweets:
+        if h.match(t) and not n.match(t):
+            tokens = tokenizer.tokenize(t)
+            bi_tokens = bigrams(tokens)
+            for b in bi_tokens:
+                #if isupper(b[0][0]) and isupper(b[1][0]):
+                if b[0][0].isupper() and b[1][0].isupper():
+                    bJoined = b[0] + ' ' + b[1]
+                    if bJoined in votes.keys():
+                        votes[bJoined] += 1
+                    else:
+                        votes[bJoined] = 1
+    avg = numpy.mean(votes.values())
+    s = numpy.std(votes.values())
+    cutoff = avg + 2*s
+    hosts = []
+    for v in votes:
+        if votes[v] >= cutoff and not (('Golden' in v) or ('Globes' in v)):
+            hosts.append(v)
+    return hosts
 
 
 # Imperatives Begin Here
@@ -206,7 +206,7 @@ tweets = sorted(tweets, key=itemgetter('created_at'))
 #pp.pprint(tweets)
 cleanTweets = []
 for t in tweets:
-	cleanTweets.append(removeRT(t['text']))
+    cleanTweets.append(removeRT(t['text']))
 
 
 
@@ -224,58 +224,55 @@ for n in nominees:
         print person
     print "\n"
 
-'''p = re.compile('.+.+present.+.+')
+p = re.compile('.+.+present.+.+')
 query = ''
 alchemy = AlchemyAPI()
 entities = []
 matches = []
-matchBin = []
-binNumber = 0
+matchNumber = []
 i = 0
 for t in cleanTweets:
-	if p.match(t):
-		matches.append(t.lower().encode('utf-8'))
-		matchBin.append(binNumber)
-		query += t.encode('utf-8') + ' '
-		if sys.getsizeof(query)>153000:
-			response = alchemy.entities('text',query,{})
-			if response['status'] == 'OK':
-				entities.extend(response['entities'])
-			query = ''
-	i += 1
-	if i == 5000:
-		binNumber += 1
-		i = 0
+    if p.match(t):
+        matches.append(t.lower().encode('utf-8'))
+        matchNumber.append(i)
+        query += t.encode('utf-8') + ' '
+        if sys.getsizeof(query)>153000:
+            response = alchemy.entities('text',query,{})
+            if response['status'] == 'OK':
+                entities.extend(response['entities'])
+            query = ''
+    i += 1
 presenters = {}
 for e in entities:
-	if e['type'] == 'Person':
-		eWords = e['text'].split(' ')
-		if len(eWords) >= 2 and len(eWords) <= 4 and len(eWords[0]) > 2 and eWords[0][0].isupper():
-			presenters[str(e['text'])] = {}
+    if e['type'] == 'Person':
+        eWords = e['text'].split(' ')
+        if len(eWords) >= 2 and len(eWords) <= 4 and len(eWords[0]) > 2 and eWords[0][0].isupper():
+            presenters[str(e['text'])] = []
+for i in range(len(matches)):
+    t = matches[i]
+    no = matchNumber[i]
+    for p in presenters:
+        if p.lower() in t:
+            presenters[p].append(no)
 print presenters
-g = re.compile('.+.+\sgoes\sto.+.+')
-h = re.compile('.+.+wins.+.+for.+.+')
-ret = {}'''
-'''for t in cleanTweets
-	t = t.encode('utf-8')
-	if h.match(t):
-		award = re.split('for\s',t)
-		for phrase in award:
-			q = phrase.lower().lstrip().rstrip()
-			if re.match('^best', q):
-				if len(q.split(" ")) > 6:
-					continue
-				if "#" in q:
-					continue
-			    # q is now award name
-	elif g.match(t):
-	    words = re.split('\sgoes\sto', t)
-	    if re.match('^best', words[0].lower().lstrip()):
-	    	category = words[0].lower().lstrip().rstrip()
-	    	if len(category.split(" ")) > 6:
-	    		continue
-	    	if "#" in q:
-	    		continue
-            # category is now award name'''
+catPresent = {}
+for p in presenters:
+    if len(presenters[p]) < 1:
+        continue
+    avg = numpy.mean(presenters[p])
+    dist = float("inf")
+    for a in results:
+        diff = numpy.absolute(avg - a['ave'])
+        if diff < dist:
+            dist = diff
+            cat = a['category']
+    if cat in catPresent.keys():
+        catPresent[cat].append(p)
+    else:
+        catPresent[cat] = [p]
 
-
+for cat in catPresent:
+    print cat.upper()
+    for c in catPresent[cat]:
+        print c
+    print "\n"
