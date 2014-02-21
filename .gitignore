@@ -1,3 +1,6 @@
+ggconfig.py
+api_key.txt
+.DS_STORE
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -4,6 +4,10 @@ import re
 from titlecase import titlecase
 from tfidf import *
 import numpy
+import sys
+from alchemyapi import *
+from operator import itemgetter
+import pprint
 
 def removeRT(tweet):
     ''' Removes the RT @handle: rom the tweet.
@@ -197,6 +201,9 @@ def getHosts(tweets):
 # Imperatives Begin Here
 with open('goldenglobes.json', 'r') as f:
     tweets = map(json.loads, f)
+tweets = sorted(tweets, key=itemgetter('created_at')) 
+#pp = pprint.PrettyPrinter(indent=4)
+#pp.pprint(tweets)
 cleanTweets = []
 for t in tweets:
 	cleanTweets.append(removeRT(t['text']))
@@ -216,5 +223,59 @@ for n in nominees:
     for person in nominees[n]:
         print person
     print "\n"
-    
+
+'''p = re.compile('.+.+present.+.+')
+query = ''
+alchemy = AlchemyAPI()
+entities = []
+matches = []
+matchBin = []
+binNumber = 0
+i = 0
+for t in cleanTweets:
+	if p.match(t):
+		matches.append(t.lower().encode('utf-8'))
+		matchBin.append(binNumber)
+		query += t.encode('utf-8') + ' '
+		if sys.getsizeof(query)>153000:
+			response = alchemy.entities('text',query,{})
+			if response['status'] == 'OK':
+				entities.extend(response['entities'])
+			query = ''
+	i += 1
+	if i == 5000:
+		binNumber += 1
+		i = 0
+presenters = {}
+for e in entities:
+	if e['type'] == 'Person':
+		eWords = e['text'].split(' ')
+		if len(eWords) >= 2 and len(eWords) <= 4 and len(eWords[0]) > 2 and eWords[0][0].isupper():
+			presenters[str(e['text'])] = {}
+print presenters
+g = re.compile('.+.+\sgoes\sto.+.+')
+h = re.compile('.+.+wins.+.+for.+.+')
+ret = {}'''
+'''for t in cleanTweets
+	t = t.encode('utf-8')
+	if h.match(t):
+		award = re.split('for\s',t)
+		for phrase in award:
+			q = phrase.lower().lstrip().rstrip()
+			if re.match('^best', q):
+				if len(q.split(" ")) > 6:
+					continue
+				if "#" in q:
+					continue
+			    # q is now award name
+	elif g.match(t):
+	    words = re.split('\sgoes\sto', t)
+	    if re.match('^best', words[0].lower().lstrip()):
+	    	category = words[0].lower().lstrip().rstrip()
+	    	if len(category.split(" ")) > 6:
+	    		continue
+	    	if "#" in q:
+	    		continue
+            # category is now award name'''
+
 
