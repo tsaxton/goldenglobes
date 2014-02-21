@@ -103,8 +103,8 @@ def winners(tweets):
                 category = category.split('."',1)[0]
                 category += str('."')
             category = category.split('#',1)[0] #removes any hashtags remaining
-            if category != '':
-                output.append({'winner': key, 'category': titlecase(category), 'max': max(awards[key][categoryKey]), 'min': min(awards[key][categoryKey]), 'ave': numpy.mean(awards[key][categoryKey]), 'positions': awards[key][categoryKey]})
+            if category != '' and key != '':
+                output.append({'winner': key, 'category': titlecase(category), 'max': max(awards[key][categoryKey]), 'min': min(awards[key][categoryKey]), 'ave': numpy.mean(awards[key][categoryKey]), 'positions': awards[key][categoryKey], 'median': numpy.median(awards[key][categoryKey])})
     return output
 
 def getNominees(tweets):
@@ -224,7 +224,10 @@ for n in nominees:
         print person
     print "\n"
 
-p = re.compile('.+.+present.+.+')
+# Probably going to completely junk this code
+# The tweets where it talks about presenters don't seem to have any real correlation to the locations of the award that they are presenting.
+# Because they are announced beforehand, though, it is acceptable to parse them from another online source, like Wikipedia
+'''p = re.compile('.+.+present.+.+')
 query = ''
 alchemy = AlchemyAPI()
 entities = []
@@ -254,15 +257,40 @@ for i in range(len(matches)):
     for p in presenters:
         if p.lower() in t:
             presenters[p].append(no)
-print presenters
-catPresent = {}
+print presenters'''
+# this method completely failed... always chose the same category
+'''categoryPresenters = {}
+for p in presenters:
+	if len(presenters[p]) < 1:
+		continue
+	median = numpy.median(presenters[p])
+	for a in results:
+		possibleCategories = {}
+		dist = 0
+		for pos in a['positions']:
+			dist += abs(median - pos)
+		possibleCategories[a['category']] = dist
+	chosenCategory = min(possibleCategories)
+	if chosenCategory in categoryPresenters.keys():
+		categoryPresenters[chosenCategory].append(p)
+	else:
+		categoryPresenters[chosenCategory] = [p]
+for cat in categoryPresenters:
+	print cat.upper()
+	for c in categoryPresenters[cat]:
+		print c
+	print "\n\n"'''
+
+
+# this method sucks less, but still has chance accuracy
+'''catPresent = {}
 for p in presenters:
     if len(presenters[p]) < 1:
         continue
-    avg = numpy.mean(presenters[p])
+    avg = numpy.median(presenters[p])
     dist = float("inf")
     for a in results:
-        diff = numpy.absolute(avg - a['ave'])
+        diff = numpy.absolute(avg - a['median'])
         if diff < dist:
             dist = diff
             cat = a['category']
@@ -275,4 +303,4 @@ for cat in catPresent:
     print cat.upper()
     for c in catPresent[cat]:
         print c
-    print "\n"
+    print "\n"'''
