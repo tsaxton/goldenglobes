@@ -211,96 +211,63 @@ for t in tweets:
 
 
 # 1. Find the names of the hosts
-print getHosts(cleanTweets)
+hosts = getHosts(cleanTweets)
 # 2. For each award, find the name of the winner.
 results = winners(cleanTweets)
 for a in results:
     print a
 # 4. For each award, try to find the nominees
-nominees = getNominees(cleanTweets)
+'''nominees = getNominees(cleanTweets)
 for n in nominees:
     print titlecase(n)
     for person in nominees[n]:
         print person
-    print "\n"
+    print "\n"'''
 
 # Probably going to completely junk this code
 # The tweets where it talks about presenters don't seem to have any real correlation to the locations of the award that they are presenting.
 # Because they are announced beforehand, though, it is acceptable to parse them from another online source, like Wikipedia
-'''p = re.compile('.+.+present.+.+')
+p = re.compile('.+.+present.+.+')
 query = ''
 alchemy = AlchemyAPI()
 entities = []
 matches = []
 matchNumber = []
 i = 0
-for t in cleanTweets:
-    if p.match(t):
-        matches.append(t.lower().encode('utf-8'))
-        matchNumber.append(i)
-        query += t.encode('utf-8') + ' '
-        if sys.getsizeof(query)>153000:
-            response = alchemy.entities('text',query,{})
-            if response['status'] == 'OK':
-                entities.extend(response['entities'])
-            query = ''
-    i += 1
-presenters = {}
-for e in entities:
-    if e['type'] == 'Person':
-        eWords = e['text'].split(' ')
-        if len(eWords) >= 2 and len(eWords) <= 4 and len(eWords[0]) > 2 and eWords[0][0].isupper():
-            presenters[str(e['text'])] = []
-for i in range(len(matches)):
-    t = matches[i]
-    no = matchNumber[i]
-    for p in presenters:
-        if p.lower() in t:
-            presenters[p].append(no)
-print presenters'''
-# this method completely failed... always chose the same category
-'''categoryPresenters = {}
-for p in presenters:
-	if len(presenters[p]) < 1:
-		continue
-	median = numpy.median(presenters[p])
-	for a in results:
-		possibleCategories = {}
-		dist = 0
-		for pos in a['positions']:
-			dist += abs(median - pos)
-		possibleCategories[a['category']] = dist
-	chosenCategory = min(possibleCategories)
-	if chosenCategory in categoryPresenters.keys():
-		categoryPresenters[chosenCategory].append(p)
-	else:
-		categoryPresenters[chosenCategory] = [p]
-for cat in categoryPresenters:
-	print cat.upper()
-	for c in categoryPresenters[cat]:
-		print c
-	print "\n\n"'''
 
-
-# this method sucks less, but still has chance accuracy
-'''catPresent = {}
-for p in presenters:
-    if len(presenters[p]) < 1:
-        continue
-    avg = numpy.median(presenters[p])
-    dist = float("inf")
-    for a in results:
-        diff = numpy.absolute(avg - a['median'])
-        if diff < dist:
-            dist = diff
-            cat = a['category']
-    if cat in catPresent.keys():
-        catPresent[cat].append(p)
+presenters={}
+for a in results:
+    start = a['min']
+    category = a['category']
+    query = ''
+    i = 0
+    possibilities = []
+    while(True):
+        query += cleanTweets[start - i].encode('utf-8') + ' '
+        query += cleanTweets[start + i].encode('utf-8') + ' '
+        i += 1
+        if sys.getsizeof(query)>25000:
+            break
+    response = alchemy.entities('text',query,{})
+    if response['status'] == 'OK':
+        entities = response['entities']
     else:
-        catPresent[cat] = [p]
+        continue
+    for e in entities:
+    	if e['type'] == 'Person':
+    		possibilities.append(e['text'])
+    if len(possibilities) > 0:
+    	presenters[category] = []
+    	for p in possibilities:
+    		if p in a['winner'] or a['winner'] in p:
+    			continue
+    		if p in hosts:
+    			continue
+    		if 'golden' in p.lower() or 'globes' in p.lower():
+    			continue
+    		presenters[category].append(p)
+    		if len(presenters[category]) > 1:
+    			break
+print presenters
 
-for cat in catPresent:
-    print cat.upper()
-    for c in catPresent[cat]:
-        print c
-    print "\n"'''
+
