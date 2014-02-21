@@ -21,6 +21,7 @@ def winners(tweets):
     winners={}
     awards={}
     output=[]
+    i = 0
     for t in tweets:
         if h.match(t):
             words = re.split('wins',t)
@@ -41,12 +42,12 @@ def winners(tweets):
                 if re.match('^best', p):
                     if person in awards.keys():
                         if p in awards[person].keys():
-                            awards[person][p]+=1
+                            awards[person][p].append(i)
                         else:
-                            awards[person][p]=1
+                            awards[person][p] = [i]
                     else:
                         awards[person] = {}
-                        awards[person][p]=1
+                        awards[person][p]=[i]
         elif g.match(t):
             words = re.split('\sgoes\sto',t)
             if re.match('^best',words[0].lower().lstrip()):
@@ -72,12 +73,13 @@ def winners(tweets):
                     winners[person]=1
                 if person in awards.keys():
                     if category in awards[person].keys():
-                        awards[person][category]+=1
+                        awards[person][category].append(i)
                     else:
-                        awards[person][category]=1
+                        awards[person][category] = [i]
                 else:
                     awards[person] = {}
-                    awards[person][category]=1
+                    awards[person][category]=[i]
+        i += 1
 
 
     for key in winners:
@@ -85,19 +87,20 @@ def winners(tweets):
         if winners[key] > 10:
             #print key+': '+str(winners[key])
             if key in awards:
-                m = max(awards[key].values())
-                for a in awards[key]:
-                    if awards[key][a] == m:
-                        #print a+': '+str(awards[key][a])
-                        category = a
-                        break # prevents from case of a tie but similar wording
+            	maxLen = 0
+            	for a in awards[key]:
+            		l = len(awards[key][a])
+            		if l > maxLen:
+            			maxLen = l
+            			category = a
+            			categoryKey = a
             category = category.split('. ', 1)[0] #removes trailing links. award names do not take two sentences.
             if '."' in category:#if clause handles award names ending with quotes ex. "django unchained." 
                 category = category.split('."',1)[0]
                 category += str('."')
             category = category.split('#',1)[0] #removes any hashtags remaining
             if category != '':
-                output.append({'winner': key, 'category': titlecase(category)})
+                output.append({'winner': key, 'category': titlecase(category), 'max': max(awards[key][categoryKey]), 'min': min(awards[key][categoryKey]), 'ave': numpy.mean(awards[key][categoryKey]), 'positions': awards[key][categoryKey]})
     return output
 
 def getNominees(tweets):
@@ -200,7 +203,6 @@ for t in tweets:
 
 
 
-'''
 # 1. Find the names of the hosts
 print getHosts(cleanTweets)
 # 2. For each award, find the name of the winner.
@@ -214,30 +216,5 @@ for n in nominees:
     for person in nominees[n]:
         print person
     print "\n"
-    '''
+    
 
-# the following attempt at doing tf idf on the tweet corpus using NLTK takes too long
-# going to try using Alchemy API to see if that does any better
-# first want to try and extract the hosts
-'''vocabulary = []
-docs = []
-all_tips = []
-for i in range(len(cleanTweets)):
-	tip = cleanTweets[i]
-	tokens = tokenizer.tokenize(tip.lower())
-	 
-	bi_tokens = bigrams(tokens)
-	tri_tokens = trigrams(tokens)
-
-	for token in tokens:
-		if token in stopwords:
-			tokens.remove(token)
-
-	tokens.extend(bi_tokens)
-	tokens.extend(tri_tokens)
-	vocabulary.append(tokens) # want to append rather than extend to keep the tweets separate
- 	docs.append({'freq': {}, 'tf': {}, 'idf': {},'tf-idf': {}, 'tokens': tokens})
-
-	for token in tokens:
-		docs[i]['freq'][token] = freq(token, tokens)
-		docs[i]['tf'][token] = tf(token, tokens)'''
