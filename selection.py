@@ -199,6 +199,7 @@ def getHosts(tweets):
 
 
 # Imperatives Begin Here
+alchemy = AlchemyAPI()
 with open('goldenglobes.json', 'r') as f:
     tweets = map(json.loads, f)
 tweets = sorted(tweets, key=itemgetter('created_at')) 
@@ -209,7 +210,6 @@ for t in tweets:
     cleanTweets.append(removeRT(t['text']))
 
 
-
 # 1. Find the names of the hosts
 hosts = getHosts(cleanTweets)
 # 2. For each award, find the name of the winner.
@@ -217,19 +217,17 @@ results = winners(cleanTweets)
 for a in results:
     print a
 # 4. For each award, try to find the nominees
-'''nominees = getNominees(cleanTweets)
+nominees = getNominees(cleanTweets)
 for n in nominees:
     print titlecase(n)
     for person in nominees[n]:
         print person
-    print "\n"'''
+    print "\n"
 
 # Probably going to completely junk this code
 # The tweets where it talks about presenters don't seem to have any real correlation to the locations of the award that they are presenting.
 # Because they are announced beforehand, though, it is acceptable to parse them from another online source, like Wikipedia
-p = re.compile('.+.+present.+.+')
 query = ''
-alchemy = AlchemyAPI()
 entities = []
 matches = []
 matchNumber = []
@@ -270,4 +268,87 @@ for a in results:
     			break
 print presenters
 
-
+# Analysis of best and worst dressed
+wearing = re.compile('.+.+wearing.+.+')
+query = ''
+wearingTweets = []
+reactions = []
+response = None
+for t in cleanTweets:
+	if wearing.match(t):
+		query += t.encode('utf-8') + ' '
+		wearingTweets.append(t)
+		if sys.getsizeof(query) > 50000:
+			response = alchemy.entities('text',query,{'sentiment': 1, 'showSourceText': 1})
+			query = ''
+			if response['status'] == 'OK':
+				reactions.extend(response['entities'])
+response = alchemy.entities('text',query,{'sentiment': 1, 'showSourceText': 1})
+if response['status'] == 'OK':
+	reactions.extend(response['entities'])
+for r in reactions:
+	if 'score' in r['sentiment'].keys():
+		r['score'] = float(r['sentiment']['score'])
+	else:
+		r['score'] = 0
+rankedRxn = sorted(reactions, key=itemgetter('score')) 
+#pprint.pprint(rankedRxn)
+i = 0
+j = 0
+best = {}
+worst = {}
+while j < 5:
+	r = rankedRxn[i]
+	if 'disambiguated' not in r.keys():
+		i += 1
+		continue
+	d = r['disambiguated']
+	if 'subType' not in d.keys():
+		i += 1
+		continue
+	if r['type'] == 'Person' and len(d['subType']) > 3:
+		worst[r['text']] = []
+		j += 1
+	i += 1
+i = 1
+j = 0
+while j < 5:
+	r = rankedRxn[-i]
+	if 'disambiguated' not in r.keys():
+		i += 1
+		continue
+	d = r['disambiguated']
+	if 'subType' not in d.keys():
+		i += 1
+		continue
+	if r['type'] == 'Person' and len(d['subType']) > 3:
+	    best[r['text']] = []
+	    j += 1
+	i += 1
+for t in wearingTweets:
+	for p in worst:
+		if p.lower() in t.lower():
+			worst[p].append(t)
+	for p in best:
+		if p.lower() in t.lower():
+			best[p].append(t)
+print "BEST DRESSED PER TWITTER REACTION"
+i = 1
+for p in best:
+	bestTweets = list(set(best[p]))
+	if len(bestTweets) > 3:
+		bestTweets = random.sample(bestTweets,3)
+	print str(i) + ". " + p
+	for t in bestTweets:
+		print "   \"" + t + "\""
+	i += 1
+print "WORST DRESSED PER TWITTER REACTION"
+i = 1
+for p in worst:
+	worstTweets = list(set(worst[p]))
+	if len(bestTweets) > 3:
+		bestTweets = random.sample(bestTweets,3)
+	print str(i) + ". " + p
+	for t in worstTweets:
+		print "   \"" + t + "\""
+	i += 1
