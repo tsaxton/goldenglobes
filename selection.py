@@ -212,14 +212,19 @@ for t in tweets:
 
 # 1. Find the names of the hosts
 hosts = getHosts(cleanTweets)
+print "HOSTS:"
+for h in hosts:
+	print h
 # 2. For each award, find the name of the winner.
 results = winners(cleanTweets)
+print "\n\nWINNERS:"
 for a in results:
-    print a
+    print a['category'].upper() + ": " + a['winner']
 # 4. For each award, try to find the nominees
+print "\n\nOTHER NOMINEES:\n"
 nominees = getNominees(cleanTweets)
 for n in nominees:
-    print titlecase(n)
+    print n.upper()
     for person in nominees[n]:
         print person
     print "\n"
@@ -266,7 +271,12 @@ for a in results:
     		presenters[category].append(p)
     		if len(presenters[category]) > 1:
     			break
-print presenters
+print "\n\nPRESENTERS\n"
+for p in presenters:
+	print p.upper()
+	for who in presenters[p]:
+		print titlecase(who)
+	print "\n"
 
 # Analysis of best and worst dressed
 wearing = re.compile('.+.+wearing.+.+')
@@ -336,19 +346,16 @@ print "BEST DRESSED PER TWITTER REACTION"
 i = 1
 for p in best:
 	bestTweets = list(set(best[p]))
-	if len(bestTweets) > 3:
-		bestTweets = random.sample(bestTweets,3)
+	bestTweets = random.sample(bestTweets,1)
 	print str(i) + ". " + p
 	for t in bestTweets:
-		print "   \"" + t + "\""
+		print "   \"" + bestTweets[0] + "\""
 	i += 1
 print "WORST DRESSED PER TWITTER REACTION"
 i = 1
 for p in worst:
 	worstTweets = list(set(worst[p]))
-	if len(bestTweets) > 3:
-		bestTweets = random.sample(bestTweets,3)
+	worstTweets = random.sample(worstTweets,1)
 	print str(i) + ". " + p
-	for t in worstTweets:
-		print "   \"" + t + "\""
+	print "   \"" + worstTweets[0] + "\""
 	i += 1
